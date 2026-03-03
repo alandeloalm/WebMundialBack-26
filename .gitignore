@@ -1,0 +1,17 @@
+# Dependencias (esta carpeta es pesada y se regenera con npm install)
+node_modules/
+
+# Variables de entorno (contiene claves secretas y credenciales de DB)
+.env
+
+# Logs y depuración
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# Carpetas del Sistema / IDE
+.DS_Store
+.vscode/
+.idea/
