@@ -18,3 +18,10 @@ export const verifyToken = (req, res, next) => {
         res.status(403).json({ error: "Token inválido o expirado." });
     }
 };
+
+export const requirePerfilCompleto = (req, res, next) => {
+    if(!req.usuario.perfilCompleto){
+        return res.status(403).json({ error: "Debes completar tu perfil primero." });
+    }
+    next();
+}

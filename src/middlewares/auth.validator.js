@@ -24,6 +24,24 @@ export const validarRegistro = (req, res, next) => {
         return res.status(400).json({ error: "El formato de fecha debe ser YYYY-MM-DD." });
     }
 
+    const hoy = new Date();
+    const nacimiento = new Date(fecha_nacimiento);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mesActual = hoy.getMonth();
+    const mesNacimiento = nacimiento.getMonth();
+
+    if (mesActual < mesNacimiento || (mesActual === mesNacimiento && hoy.getDate() < nacimiento.getDate())) {
+        edad--;
+    }
+
+    if (edad < 13) {
+        return res.status(400).json({ error: "Debes tener al menos 13 años para registrarte." });
+    }
+
+    if (edad > 120) {
+        return res.status(400).json({ error: "Fecha de nacimiento inválida." });
+    }
+
     const generosValidos = ['Masculino', 'Femenino', 'Otro', 'Prefiero no decirlo'];
     if (genero && !generosValidos.includes(genero)) {
         return res.status(400).json({ error: "El género seleccionado no es válido." });
