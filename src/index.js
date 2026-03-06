@@ -2,7 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 import authRoutes from './routes/auth.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 import helmet from 'helmet';
+import { seedAdmin } from './config/seedAdmin.js';
 
 const app = express();
 
@@ -14,6 +16,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10kb' }));
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
@@ -22,6 +25,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`🚀 Servidor de WebMundial-26 corriendo en http://localhost:${PORT}`);
+    await seedAdmin();
 });

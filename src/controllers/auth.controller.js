@@ -12,11 +12,13 @@ export const registro = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
 
+        const rol = correo === process.env.ADMIN_EMAIL ? 'admin' : 'user';
+
         const query = `
-            INSERT INTO usuarios (nombre, correo, password_hash, nacionalidad, fecha_nacimiento, telefono, genero)
-            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, correo
+            INSERT INTO usuarios (nombre, correo, password_hash, nacionalidad, fecha_nacimiento, telefono, genero, perfil_verificado, rol)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, true, $8) RETURNING id, correo, rol
         `;
-        const values = [nombre, correo, passwordHash, nacionalidad, fecha_nacimiento, telefono, genero];
+        const values = [nombre, correo, passwordHash, nacionalidad, fecha_nacimiento, telefono, genero, rol];
         const result = await pool.query(query, values);
         
         res.status(201).json({ 
@@ -85,8 +87,17 @@ export const googleLogin = async (req, res) => {
       });
       const { email, name, sub: googleId } = ticket.getPayload();
   
+      if (email === process.env.ADMIN_EMAIL) {
+        return res.status(403).json({ 
+          error: "La cuenta de administrador debe iniciar sesión con correo y contraseña." 
+        });
+      }
+
       let result = await pool.query('SELECT * FROM usuarios WHERE correo = $1', [email]);
       let usuario = result.rows[0];
+      if (usuario) {
+        await pool.query('UPDATE usuarios SET ultimo_login = CURRENT_TIMESTAMP WHERE id = $1', [usuario.id]);
+      }
 
       let esNuevo = false;
   

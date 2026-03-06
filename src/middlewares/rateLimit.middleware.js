@@ -10,8 +10,9 @@ export const loginLimiter = rateLimit({
 
 export const registroLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
-    max: 2, 
+    max: 2,
+    skipFailedRequests: true,
     message: { error: "Demasiados intentos de registro. Intenta de nuevo en 1 hora." },
     standardHeaders: true,
     legacyHeaders: false,
-  });
+});
