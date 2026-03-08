@@ -3,6 +3,8 @@ import cors from 'cors';
 import 'dotenv/config';
 import authRoutes from './routes/auth.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import recompensasRoutes from './routes/recompensas.routes.js'
+import experienciasRouter from './routes/experiencias.routes.js';
 import helmet from 'helmet';
 import { seedAdmin } from './config/seedAdmin.js';
 
@@ -17,6 +19,8 @@ app.use(cors({
 app.use(express.json({ limit: '10kb' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/recompensas', recompensasRoutes);
+app.use('/api/experiencias', experienciasRouter);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
