@@ -5,6 +5,7 @@ import authRoutes from './routes/auth.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import recompensasRoutes from './routes/recompensas.routes.js'
 import experienciasRouter from './routes/experiencias.routes.js';
+import lugaresRoutes from './routes/lugares.routes.js';
 import helmet from 'helmet';
 import { seedAdmin } from './config/seedAdmin.js';
 
@@ -13,19 +14,19 @@ const app = express();
 app.use(helmet());
 app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:4200',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json({ limit: '10kb' }));
+app.use((req, res, next) => {
+  const rutasStream = ['/api/lugares', '/api/experiencias/completar'];
+  if (rutasStream.some(r => req.path.startsWith(r)) && req.method !== 'GET') return next();
+  express.json({ limit: '100kb' })(req, res, next);
+});
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/recompensas', recompensasRoutes);
 app.use('/api/experiencias', experienciasRouter);
-
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: "Error interno del servidor" });
-});
+app.use('/api/lugares', lugaresRoutes);
 
 const PORT = process.env.PORT || 3000;
 

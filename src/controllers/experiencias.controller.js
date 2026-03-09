@@ -6,9 +6,24 @@ export const obtenerQR = async (req, res) => {
   res.json({ qr_data: usuario_id });
 };
 
-export const completarKiosko = async (req, res) => {
-  const { usuario_id, kiosko_id } = req.body;
+function subirVideoStream(req) {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { resource_type: 'video', folder: 'webmundial/videos' },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+    req.pipe(uploadStream);
+    req.on('error', reject);
+    uploadStream.on('error', reject);
+  });
+}
 
+export const completarKiosko = async (req, res) => {
+  const { usuario_id, kiosko_id } = req.query;
+  
   try {
     const { rows: usuarioRows } = await pool.query(
       `SELECT id FROM usuarios WHERE id = $1`,
@@ -27,21 +42,10 @@ export const completarKiosko = async (req, res) => {
     }
 
     let video_url = null;
+    const contentType = req.headers['content-type'] || '';
 
-    if (req.file) {
-      const resultado = await new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          {
-            resource_type: 'video',
-            folder: 'webmundial/videos',
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        stream.end(req.file.buffer);
-      });
+    if (contentType.startsWith('video/')) {
+      const resultado = await subirVideoStream(req);
       video_url = resultado.secure_url;
     }
 
@@ -82,31 +86,30 @@ export const completarKiosko = async (req, res) => {
 
     function generarCodigo() {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      const seg = () => Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+      const seg = () =>
+        Array.from({ length: 4 }, () =>
+          chars[Math.floor(Math.random() * chars.length)]
+        ).join('');
       return `${seg()}-${seg()}`;
     }
 
     let cupones_asignados = 0;
 
     for (const campana of campanas) {
-      let codigo;
-      let unico = false;
-
-      while (!unico) {
-        codigo = generarCodigo();
-        const { rows } = await pool.query(
-          `SELECT id FROM cupones WHERE codigo = $1`,
-          [codigo]
-        );
-        if (rows.length === 0) unico = true;
-      }
-
-      await pool.query(
-        `INSERT INTO cupones (campana_id, usuario_id, codigo, estado, asignado_en)
-         VALUES ($1, $2, $3, 'asignado', NOW())`,
-        [campana.id, usuario_id, codigo]
-      );
-
+      let insertado = false;
+        while (!insertado) {
+          const codigo = generarCodigo();
+          try {
+            await pool.query(`
+              INSERT INTO cupones (campana_id, usuario_id, codigo, estado, asignado_en)
+              VALUES ($1, $2, $3, 'asignado', NOW())`, 
+              [campana.id, usuario_id, codigo]
+            );
+            insertado = true;
+          } catch (err) {
+            if (err.code !== '23505') throw err;
+          }
+        }
       cupones_asignados++;
     }
 

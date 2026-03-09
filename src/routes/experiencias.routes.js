@@ -3,13 +3,13 @@ import { obtenerQR, completarKiosko, obtenerVideos } from '../controllers/experi
 import { verifyToken } from '../middlewares/auth.middleware.js';
 import { verifyKioskoSecret } from '../middlewares/kioskos.middleware.js';
 import { validarCompletarKiosko } from '../middlewares/experiencias.validator.js';
-import { upload } from '../middlewares/upload.middleware.js';
 import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
 
 router.get('/qr', verifyToken, obtenerQR);
 router.get('/videos', verifyToken, obtenerVideos);
-router.post('/completar', verifyKioskoSecret, upload.single('video'), validarCompletarKiosko, completarKiosko, rateLimit);
+const limiter = rateLimit({ windowMs: 60_000, max: 10 });
+router.post('/completar', limiter, verifyKioskoSecret, validarCompletarKiosko, completarKiosko);
 
 export default router;

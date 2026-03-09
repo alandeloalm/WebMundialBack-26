@@ -1,15 +1,22 @@
 import pool from './db.js'; 
 
 export async function seedAdmin() {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail) return;
+  try{
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (!adminEmail) return;
 
-  const result = await pool.query(
-    `UPDATE usuarios SET rol = 'admin' WHERE correo = $1 AND rol != 'admin' RETURNING correo`,
-    [adminEmail]
-  );
+    const { rows } = await pool.query(
+      `SELECT rol FROM usuarios WHERE correo = $1`,
+      [adminEmail]
+    );
 
-  if (result.rowCount > 0) {
-    console.log(`✓ Admin asegurado: ${adminEmail}`);
-  }
+    if (rows[0]?.rol === 'admin') return;
+
+    await pool.query(
+      `UPDATE usuarios SET rol = 'admin' WHERE correo = $1`,
+      [adminEmail]
+    );
+  } catch (err) {
+    console.error(err);
+  } 
 }
