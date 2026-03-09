@@ -6,6 +6,7 @@ import adminRoutes from './routes/admin.routes.js';
 import recompensasRoutes from './routes/recompensas.routes.js'
 import experienciasRouter from './routes/experiencias.routes.js';
 import lugaresRoutes from './routes/lugares.routes.js';
+import dashboardRoutes from './routes/dashboard.routes.js';
 import helmet from 'helmet';
 import { seedAdmin } from './config/seedAdmin.js';
 
@@ -27,6 +28,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/recompensas', recompensasRoutes);
 app.use('/api/experiencias', experienciasRouter);
 app.use('/api/lugares', lugaresRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 const PORT = process.env.PORT || 3000;
 
