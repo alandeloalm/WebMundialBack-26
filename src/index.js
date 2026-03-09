@@ -14,15 +14,29 @@ const app = express();
 
 app.use(helmet());
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:4200',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+  origin: [
+      'http://localhost:4200',
+      'https://tu-app.vercel.app'  
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use((req, res, next) => {
-  const rutasStream = ['/api/lugares', '/api/experiencias/completar'];
-  if (rutasStream.some(r => req.path.startsWith(r)) && req.method !== 'GET') return next();
-  express.json({ limit: '100kb' })(req, res, next);
-});
+app.use(cors({
+  origin: (origin, callback) => {
+      const allowed = [
+          'http://localhost:4200',
+          'https://web-mundial-front-26.vercel.app'
+      ];
+      // Permite cualquier subdominio de vercel.app del proyecto
+      if (!origin || allowed.includes(origin) || origin.includes('web-mundial-front-26')) {
+          callback(null, true);
+      } else {
+          callback(new Error('Not allowed by CORS'));
+      }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/recompensas', recompensasRoutes);
@@ -32,7 +46,7 @@ app.use('/api/dashboard', dashboardRoutes);
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, async () => {
-    console.log(`🚀 Servidor de WebMundial-26 corriendo en http://localhost:${PORT}`);
-    await seedAdmin();
+app.listen(PORT, '0.0.0.0', async () => {
+  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+  await seedAdmin();
 });
