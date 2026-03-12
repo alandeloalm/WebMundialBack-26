@@ -1,6 +1,3 @@
-// src/services/emergencias.service.js
-// Datos fijos — no requieren BD
-
 const EMERGENCIAS = [
     { nombre: 'Emergencias Generales',          numero: '911',            descripcion: 'Policía, ambulancia y bomberos. Línea principal en México.',     tipo: 'emergencia'    },
     { nombre: 'Cruz Roja Monterrey',             numero: '800 890 3900',   descripcion: 'Ambulancias y urgencias médicas.',                               tipo: 'medico'        },

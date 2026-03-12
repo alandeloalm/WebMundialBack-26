@@ -1,15 +1,10 @@
 import pool from '../config/db.js';
 
-// Helper: filtro de fechas
 const getFiltroFecha = (filtro, campo) => {
   if (filtro === 'semana')  return `AND ${campo} >= NOW() - INTERVAL '7 days'`;
   if (filtro === 'mes')     return `AND ${campo} >= NOW() - INTERVAL '30 days'`;
   return '';
 };
-
-// ══════════════════════════════════════════════════════════════════════════════
-// TAB: USUARIOS
-// ══════════════════════════════════════════════════════════════════════════════
 
 export const getMetricasUsuarios = async (req, res) => {
   const { filtro = 'total' } = req.query;
@@ -57,7 +52,6 @@ export const getMetricasUsuarios = async (req, res) => {
        ORDER BY total DESC`
     );
 
-    // FIX: subquery para evitar error GROUP BY con fecha_nacimiento
     const filtroCreaPlain = filtroCrea.replace(/u\./g, '');
     const { rows: edad } = await pool.query(
       `SELECT rango, COUNT(*) AS total
@@ -112,10 +106,6 @@ export const getMetricasUsuarios = async (req, res) => {
   }
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// TAB: CAMPANAS
-// ══════════════════════════════════════════════════════════════════════════════
-
 export const getMetricasCampanas = async (req, res) => {
   const { filtro = 'total' } = req.query;
   const filtroCanje = getFiltroFecha(filtro, 'cu.canjeado_en');
@@ -165,7 +155,6 @@ export const getMetricasCampanas = async (req, res) => {
        WHERE cu.estado = 'canjeado' ${filtroCanje}`
     );
 
-    // FIX: subquery para evitar error GROUP BY con fecha_nacimiento en el cruzado
     const { rows: cruzado } = await pool.query(
       `SELECT
          COALESCE(NULLIF(TRIM(u.nacionalidad), ''), 'No especificado') AS nacionalidad,
@@ -225,10 +214,6 @@ export const getMetricasCampanas = async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
-
-// ══════════════════════════════════════════════════════════════════════════════
-// TAB: COMERCIOS
-// ══════════════════════════════════════════════════════════════════════════════
 
 export const getMetricasComercio = async (req, res) => {
   const { filtro = 'total' } = req.query;
@@ -317,10 +302,6 @@ export const getMetricasComercio = async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
-
-// ══════════════════════════════════════════════════════════════════════════════
-// TAB: KIOSKOS
-// ══════════════════════════════════════════════════════════════════════════════
 
 export const getMetricasKioskos = async (req, res) => {
   const { filtro = 'total' } = req.query;

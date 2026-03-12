@@ -1,7 +1,9 @@
-// src/services/gemini.service.js
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const client = new OpenAI({
+  baseURL: 'https://api.deepseek.com',
+  apiKey: process.env.DEEPSEEK_API_KEY,
+});
 
 const PROMPTS = {
   chicharron: `Eres "Chicharrón", uno de los asistentes oficiales del Mundial FIFA 2026 en Monterrey.
@@ -53,27 +55,29 @@ export function elegirAvatar() {
   return Math.random() < 0.5 ? 'chicharron' : 'macarron';
 }
 
-export async function chatConGemini(mensaje, contexto = {}, historial = [], avatar = 'chicharron') {
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
-    systemInstruction: PROMPTS[avatar] ?? PROMPTS.chicharron
-  });
-
+export async function chatConDeepSeek(mensaje, contexto = {}, historial = [], avatar = 'chicharron') {
   const contextoTexto = armarContexto(contexto);
-
-  const historialGemini = historial.slice(-10).map(msg => ({
-    role: msg.role === 'user' ? 'user' : 'model',
-    parts: [{ text: msg.text }]
-  }));
-
-  const chat = model.startChat({ history: historialGemini });
 
   const mensajeFinal = contextoTexto
     ? `${mensaje}\n\n[DATOS DISPONIBLES]:\n${contextoTexto}`
     : mensaje;
 
-  const result = await chat.sendMessage(mensajeFinal);
-  return result.response.text();
+  // Convertir historial al formato OpenAI
+  const historialOpenAI = historial.slice(-10).map(msg => ({
+    role: msg.role === 'model' ? 'assistant' : 'user',
+    content: msg.text,
+  }));
+
+  const response = await client.chat.completions.create({
+    model: 'deepseek-chat',
+    messages: [
+      { role: 'system', content: PROMPTS[avatar] ?? PROMPTS.chicharron },
+      ...historialOpenAI,
+      { role: 'user', content: mensajeFinal },
+    ],
+  });
+
+  return response.choices[0].message.content;
 }
 
 function armarContexto(contexto) {

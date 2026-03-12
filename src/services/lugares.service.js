@@ -1,9 +1,5 @@
-// src/services/lugares.service.js
 import pool from '../config/db.js';
 
-/**
- * Lugares más cercanos a una coordenada (Haversine en SQL)
- */
 export async function getLugaresCercanos({ lat, lng, categoria, limite = 5 }) {
   let whereClause = '';
   const params = [lat, lng, lat];
@@ -41,9 +37,6 @@ export async function getLugaresCercanos({ lat, lng, categoria, limite = 5 }) {
   }));
 }
 
-/**
- * Busca lugares por texto (nombre, descripcion, categoria)
- */
 export async function buscarLugares({ texto, limite = 5 }) {
   const query = `
     SELECT id, nombre, descripcion, categoria, latitud, longitud, imagen_url
@@ -63,9 +56,6 @@ export async function buscarLugares({ texto, limite = 5 }) {
   }));
 }
 
-/**
- * Lugares por categoría
- */
 export async function getLugaresPorCategoria(categoria, limite = 5) {
   const query = `
     SELECT id, nombre, descripcion, categoria, latitud, longitud, imagen_url

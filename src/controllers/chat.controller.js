@@ -1,16 +1,10 @@
-// src/controllers/chat.controller.js
-import { chatConGemini, elegirAvatar, AVATARES }                   from '../services/gemini.service.js';
+import { chatConDeepSeek, elegirAvatar, AVATARES }                 from '../services/deepseek.service.js';
 import { getLugaresCercanos, buscarLugares, getLugaresPorCategoria } from '../services/lugares.service.js';
 import { getProximosPartidos, getPartidosPorEquipo, getPartidosHoy, getPartidosMonterrey } from '../services/partidos.service.js';
 import { getContextoEmergencias }                                   from '../services/emergencias.service.js';
 
-// Historial + avatar por sesión
 const sesiones = new Map();
 
-/**
- * POST /api/chat
- * Body: { mensaje, sessionId, lat?, lng? }
- */
 export async function procesarMensaje(req, res) {
   try {
     const { mensaje, sessionId = 'default', lat, lng } = req.body;
@@ -19,25 +13,24 @@ export async function procesarMensaje(req, res) {
       return res.status(400).json({ error: 'El mensaje no puede estar vacío' });
     }
 
-    // Crear sesión si no existe — elige avatar al azar UNA vez por sesión
     if (!sesiones.has(sessionId)) {
       sesiones.set(sessionId, { historial: [], avatar: elegirAvatar() });
     }
     const sesion = sesiones.get(sessionId);
 
     const contexto = await obtenerContexto(mensaje, lat, lng);
-    const respuesta = await chatConGemini(mensaje, contexto, sesion.historial, sesion.avatar);
+    const respuesta = await chatConDeepSeek(mensaje, contexto, sesion.historial, sesion.avatar);
 
     sesion.historial.push({ role: 'user',  text: mensaje  });
-    sesion.historial.push({ role: 'model', text: respuesta });
+    sesion.historial.push({ role: 'assistant', text: respuesta });
     if (sesion.historial.length > 20) sesion.historial.splice(0, 2);
 
     return res.json({
       respuesta,
-      avatar:   sesion.avatar,                  // 'chicharron' | 'macarron'
-      avatarInfo: AVATARES[sesion.avatar],       // { nombre, emoji, imagen }
-      lugares:  contexto.lugares  || [],
-      partidos: contexto.partidos || []
+      avatar:     sesion.avatar,
+      avatarInfo: AVATARES[sesion.avatar],
+      lugares:    contexto.lugares  || [],
+      partidos:   contexto.partidos || []
     });
 
   } catch (error) {

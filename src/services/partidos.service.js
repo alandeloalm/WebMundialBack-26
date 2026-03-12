@@ -1,9 +1,5 @@
-// src/services/partidos.service.js
 import pool from '../config/db.js';
 
-/**
- * Próximos partidos (desde hoy en adelante)
- */
 export async function getProximosPartidos(limite = 5) {
   const query = `
     SELECT
@@ -21,9 +17,6 @@ export async function getProximosPartidos(limite = 5) {
   return rows;
 }
 
-/**
- * Partidos de un equipo específico
- */
 export async function getPartidosPorEquipo(equipo) {
   const query = `
     SELECT
@@ -43,9 +36,6 @@ export async function getPartidosPorEquipo(equipo) {
   return rows;
 }
 
-/**
- * Partidos de hoy
- */
 export async function getPartidosHoy() {
   const query = `
     SELECT
@@ -61,9 +51,6 @@ export async function getPartidosHoy() {
   return rows;
 }
 
-/**
- * Partidos en Monterrey
- */
 export async function getPartidosMonterrey() {
   const query = `
     SELECT
@@ -80,9 +67,6 @@ export async function getPartidosMonterrey() {
   return rows;
 }
 
-/**
- * Partidos por fase
- */
 export async function getPartidosPorFase(fase) {
   const query = `
     SELECT
